@@ -1,16 +1,13 @@
-addons: 
+addons:
   apt:
-    sources:
-      - boost-latest
-    packages: 
+    packages:
       - libboost-test-dev
 compiler: clang
 deploy:
   provider: script
   script:
-    - curl -f -T allocator-0.0.1-Linux.deb -unggshik:$BINTRAY_API_KEY "https://api.bintray.com/content/nggshik/study-cpp/allocator/$TRAVIS_BUILD_NUMBER/allocator-0.0.1-Linux.deb;deb_distribution=xenial;deb_component=main;deb_architecture=amd64;publish=1"
+    - curl -f -T allocator-0.0.1-Linux.deb -unggshik:$BINTRAY_API_KEY "https://api.bintray.com/content/nggshik/study-cpp/allocator/1/allocator-0.0.1-Linux.deb;deb_distribution=xenial;deb_component=main;deb_architecture=amd64;publish=1"
   skip_cleanup: true
-
 dist: xenial
 language: cpp
 script:
