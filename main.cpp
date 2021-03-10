@@ -129,7 +129,6 @@ int main()
         v_iCustom.emplace(i,i);
     }
 
-
     // Map with std::allocator<hard>
     //------------------------------------------------------------
     auto  v = std::map<int,hard>{};
