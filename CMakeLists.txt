@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 project(allocator VERSION 0.0.1)
 
 find_package(Threads REQUIRED)
-find_package(Boost COMPONENTS unit_test_framework REQIRED)
+find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 add_executable(allocator main.cpp)
 
