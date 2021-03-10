@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <cstring>
 
+#include "linkedlist.hpp"
 struct hard
 {
     int iValue;
@@ -11,7 +13,7 @@ struct hard
 
     hard(const hard& cpy) = delete; //{std::cout << __PRETTY_FUNCTION__ << std::endl;}
 
-    hard(hard&& ) noexcept {std::cout << __PRETTY_FUNCTION__ << std::endl;}
+    hard(hard&& mh) noexcept {iValue = mh.iValue; dValue = mh.dValue;  std::cout << __PRETTY_FUNCTION__ << std::endl;}
 };
 
 template <typename T, size_t sz>
@@ -27,27 +29,32 @@ struct logging_allocater
     struct rebind{
         using other = logging_allocater<U, sz>;
     };
-
+    
     T* allocate(size_t n)
     {
-        if(last_ptr == nullptr){
-            ptr = malloc(sizeof(T)* sz);
-            last_ptr = (T*)ptr;
+        if(block_ptr == nullptr){
+            block_ptr = (T*) malloc(sizeof(T)* sz);
         }
-        if(!ptr)
+        if(!block_ptr)
             throw std::bad_alloc();
-        if((last_ptr - (T*)ptr) == sz*sizeof(T))
+        if(cntr == sz)
         {
-            //realoc
+            auto ptr = malloc(sizeof(T) * sz);
+            if(!ptr)
+                throw std::bad_alloc();
+
+            cntr = 0;
+            block_ptr = (T*)ptr;
         }
 
         std::cout << __PRETTY_FUNCTION__ << std::endl;
-        return last_ptr++;
+        return (block_ptr+cntr++);
     };
     void deallocate(T* p, size_t n)
     {
+        static int d_cntr = 0;
         std::cout << __PRETTY_FUNCTION__ << std::endl;
-        if(--last_ptr == (T*)ptr)
+        if((d_cntr++ % sz) == 0)
             std::free(p);
     };
 
@@ -64,28 +71,79 @@ struct logging_allocater
         p->~T();
     }
     private:
-        void* ptr = nullptr;
-        T* last_ptr = nullptr;
+        size_t cntr = 0;
+        T* block_ptr = nullptr;
 };
 
 int main()
 {
-    // std::vector<hard,logging_allocater<hard>> v;
-    // for(size_t i = 0; i < 5; ++i)
-    // {
-    //     v.emplace_back(i,i);
-    // }
+    //Custom container with std alloc
+    //---------------------------------------------------------
+    linkedlist<int> llint;
+    for(size_t i = 0; i < 12; ++i)
+    {
+        llint.emplace(i);
+    }
+    for(auto it = llint.begin(); it != llint.end(); ++it)
+    {
+        std::cout << "Int value = " << (*it) << std::endl;
+    }
 
-    // auto  v = std::map<int,int,std::less<int>,logging_allocater<std::pair<const int, int>,10>>{};
-    // for(size_t i = 0; i < 5; ++i)
-    // {
-    //     // v.emplace(std::piecewise_construct,std::forward_as_tuple(i),std::forward_as_tuple(i,i));
-    //     v.emplace(i,i);
-    // }
-    auto  v = std::map<int,hard,std::less<int>>{};
-    for(size_t i = 0; i < 5; ++i)
+    // Custom container with custom allocator<int>
+    //----------------------------------------------------------
+    linkedlist<int,logging_allocater<int,10>> llintCustom;
+    for(size_t i = 0; i < 12; ++i)
+    {
+        llintCustom.emplace(i);
+    }
+    for(auto it = llintCustom.begin(); it != llintCustom.end(); ++it)
+    {
+        std::cout << "Int value = " << (*it) << std::endl;
+    }
+
+    // Custom container with custom allocator<hard>
+    //-----------------------------------------------------------
+    linkedlist<hard,logging_allocater<hard,10>> ll;
+    for(size_t i = 0; i < 11; ++i)
+    {
+        ll.emplace(hard(i,i));
+    }
+    for(auto it = ll.begin(); it != ll.end(); ++it)
+    {
+        std::cout << "Hard value = (" << (*it).iValue << ", " << (*it).dValue << " )" << std::endl;
+    }
+
+    // Map with std::allocator<int>
+    //------------------------------------------------------------
+    auto  v_i = std::map<int,int>{};
+    for(size_t i = 0; i < 11; ++i)
+    {
+        v_i.emplace(i,i);
+    }
+
+    // Map with custom allocator<int>
+    //------------------------------------------------------------
+    auto  v_iCustom = std::map<int,int,std::less<int>,logging_allocater<std::pair<const int, int>,10>>{};
+    for(size_t i = 0; i < 11; ++i)
+    {
+        v_iCustom.emplace(i,i);
+    }
+
+
+    // Map with std::allocator<hard>
+    //------------------------------------------------------------
+    auto  v = std::map<int,hard>{};
+    for(size_t i = 0; i < 11; ++i)
     {
         v.emplace(std::piecewise_construct,std::forward_as_tuple(i),std::forward_as_tuple(i,i));
-        // v.emplace(i,i);
     }
+
+    //Standart map with custom allocator<hard>
+    //----------------------------------------------------------------------------------------------
+    auto  vCustom = std::map<int,hard,std::less<int>,logging_allocater<std::pair<const int, hard>,10>>{};
+    for(size_t i = 0; i < 11; ++i)
+    {
+        vCustom.emplace(std::piecewise_construct,std::forward_as_tuple(i),std::forward_as_tuple(i,i));
+    }
+
 }
