@@ -1,10 +1,8 @@
-addons:
-  apt:
-    packages:
+addons: 
+  apt: 
+    packages: 
       - libboost-test-dev
-
 compiler: clang
-
 deploy:
   provider: script
   script:
