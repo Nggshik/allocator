@@ -1,5 +1,7 @@
 addons: 
-  apt: 
+  apt:
+    sources:
+      - boost-latest
     packages: 
       - libboost-test-dev
 compiler: clang
